@@ -3,6 +3,7 @@
 #include "sensor_driver.h"
 #include "collision.h"
 #include "motorDriver.h"
+#include "AWS.h"
 
 void taskOne(void *parameter);
 void taskTwo(void *parameter);
@@ -62,11 +63,23 @@ void loop()
 void taskOne(void *parameter)
 {
   // example of a task that executes for some time and then is deleted
+  myawsclass awsobject = myawsclass();
+  Serial.println("Hello from task: 2");
+  int i = 0;
+  awsobject.connectAWS();
+  //create an endless loop so the task executes forever
   for (;;)
   {
     // Code section for getting data from AWS
     
+     delay(1000);
+    //vTaskDelay(1000 / portTICK_PERIOD_MS);
+    awsobject.publishMessage(i);
     
+    //vTaskDelay(500 / portTICK_PERIOD_MS);
+    //Serial.println("Hello from task: 2");
+    i++;
+    awsobject.stayConnected();
     // The blink led code below just be used for simulating an example task
     // Switch on the LED
     digitalWrite(LED_BOARD, HIGH);
