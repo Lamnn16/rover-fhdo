@@ -70,10 +70,10 @@ void taskBlinkLed(void *parameter)
   for (;;)
   {
     digitalWrite(LED_BOARD, HIGH);
-    vTaskDelay(500 / portTICK_PERIOD_MS); 
+    vTaskDelay(200 / portTICK_PERIOD_MS); 
     digitalWrite(LED_BOARD, LOW);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-  }
+    vTaskDelay(200 / portTICK_PERIOD_MS);
+  } 
   vTaskDelete(NULL);
 }
 
