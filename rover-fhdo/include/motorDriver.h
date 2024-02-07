@@ -19,8 +19,8 @@ enum Motors
 
 enum Direction
 {
-  Forward = 0,  /* Motor Forward */
-  Backward = 1  /* Motor Backward */
+  Forward = 1,  /* Motor Forward */
+  Backward = 0  /* Motor Backward */
 };
 
 class mclass {

@@ -48,13 +48,13 @@ void mclass::motor_direction(Motors motor_ch, Direction dir) {
   {
     if (dir == Forward)
     {
-      digitalWrite(inA1,HIGH);  //uncomment to use ESP custom
-      digitalWrite(inA2,LOW);   //uncomment to use ESP custom
+      digitalWrite(inA1,LOW);   //uncomment to use ESP custom
+      digitalWrite(inA2,HIGH);  //uncomment to use ESP custom
     }
     else 
     {
-      digitalWrite(inA1,LOW);   //uncomment to use ESP custom
-      digitalWrite(inA2,HIGH);  //uncomment to use ESP custom
+      digitalWrite(inA1,HIGH);  //uncomment to use ESP custom
+      digitalWrite(inA2,LOW);   //uncomment to use ESP custom
     }
   }
 
@@ -62,13 +62,13 @@ void mclass::motor_direction(Motors motor_ch, Direction dir) {
   {
     if (dir == Forward)
     {
-      digitalWrite(inB1,LOW);   //uncomment to use ESP custom
-      digitalWrite(inB2,HIGH);  //uncomment to use ESP custom
+      digitalWrite(inB1,HIGH);  //uncomment to use ESP custom
+      digitalWrite(inB2,LOW);   //uncomment to use ESP custom
     }
     else
     {
-      digitalWrite(inB1,HIGH);  //uncomment to use ESP custom
-      digitalWrite(inB2,LOW);   //uncomment to use ESP custom
+      digitalWrite(inB1,LOW);   //uncomment to use ESP custom
+      digitalWrite(inB2,HIGH);  //uncomment to use ESP custom
     }
   }
 }
