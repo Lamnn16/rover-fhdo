@@ -20,13 +20,8 @@ bool Collision::init()
 
     /* Wait for the serial port to be opened before printing */
     /* messages (only applies to boards with native USB) */
-    while (!Serial)
-    {
-    }
-
     _sensor.init();
-    if (_sensor.getLastError())
-    {
+    if (_sensor.getLastError()) {
         Serial.print(F("Failed to initialize OPT3101: error "));
         Serial.println(_sensor.getLastError());
         return false;
@@ -43,12 +38,7 @@ Collision::segments Collision::warning()
         delay(1);
     _sensor.readOutputRegs();
 
-    enum SEG_NAME
-    {
-        TX0 = 0,
-        TX1,
-        TX2
-    };
+    enum SEG_NAME { TX0 = 0, TX1, TX2 };
     enum SEG_NAME cur_seg = (enum SEG_NAME)_sensor.channelUsed;
     bool valid_sample = (_sensor.amplitude >= _thresh_amplitude) ? true : false;
 
@@ -60,8 +50,7 @@ Collision::segments Collision::warning()
     _sensor.nextChannel();
     _sensor.startSample();
 
-    switch (cur_seg)
-    {
+    switch (cur_seg) {
     case TX0:
         _segments.l = warning;
         break;

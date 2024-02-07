@@ -106,7 +106,6 @@ void mclass::set_speed(Motors motor_ch, Direction dir, int new_speed) {
   }
 }
 
-
 void mclass::motor_all_stop() {
   
       digitalWrite(inA1,LOW);  //uncomment to use ESP custom
@@ -118,6 +117,5 @@ void mclass::motor_all_stop() {
       digitalWrite(inB1,LOW);  //uncomment to use ESP custom
       digitalWrite(inB2,LOW);   //uncomment to use ESP custom
 }
-
 
 mclass motorobject = mclass();  /* creating an object of class motor */

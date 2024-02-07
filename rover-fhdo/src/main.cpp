@@ -1,26 +1,28 @@
 #include <Arduino.h>
 #include "opt3101.h"
-#include "sensor_driver.h"
+#include "sensorDriver.h"
 #include "collision.h"
 #include "motorDriver.h"
+#include <AWS.h>
 
-#define LED_BOARD 2 
+#define LED_BOARD 2 //change here the pin of the board to V2
 
 void taskBlinkLed(void *parameter);
 void taskSensorDataGet(void *parameter);
 void taskMotorControl(void *parameter);
+void taskAWS( void * parameter);
 
 Collision collisionSensor;
 mclass motorDriver;
 
 bool obstacleDetected = false;
 
-void setup()
-{
+
+void setup(){
   pinMode(LED_BOARD, OUTPUT);
   Serial.begin(9600);
-
-  motorDriver.SETUP();
+  
+    motorDriver.SETUP();
 
   if (collisionSensor.init())
   {
@@ -34,35 +36,42 @@ void setup()
   collisionSensor.setThreshDistance(200); // Set threshold distance to 200 mm
 
   delay(1000);
+  
+  xTaskCreate(
+                    taskBlinkLed,          /* Task function. */
+                    "TaskOne",        /* String with name of task. */
+                    7644,              /* Stack size in bytes. */
+                    NULL,             /* Parameter passed as input of the task */
+                    1,                /* Priority of the task. */
+                    NULL);            /* Task handle. */
 
   xTaskCreate(
-      taskBlinkLed,   /* Task function. */
-      "TaskBlinkLed", /* String with name of task. */
-      7644,      /* Stack size in bytes. */
-      NULL,      /* Parameter passed as input of the task */
-      1,         /* Priority of the task. */
-      NULL);     /* Task handle. */
+                    taskAWS,          /* Task function. */
+                    "TaskTwo",        /* String with name of task. */
+                    7644,              /* Stack size in bytes. */
+                    NULL,             /* Parameter passed as input of the task */
+                    1,                /* Priority of the task. */
+                    NULL);            /* Task handle. */
 
   xTaskCreate(
-      taskSensorDataGet,   /* Task function. */
-      "TaskSensorDataGet", /* String with name of task. */
-      7644,      /* Stack size in bytes. */
-      NULL,      /* Parameter passed as input of the task */
-      1,         /* Priority of the task. */
-      NULL);     /* Task handle. */
+        taskSensorDataGet,   /* Task function. */
+        "TaskSensorDataGet", /* String with name of task. */
+        7644,      /* Stack size in bytes. */
+        NULL,      /* Parameter passed as input of the task */
+        1,         /* Priority of the task. */
+        NULL);     /* Task handle. */
 
-  xTaskCreate(
-      taskMotorControl,   /* Task function. */
-      "taskMotorControl", /* String with name of task. */
-      7644,        /* Stack size in bytes. */
-      NULL,        /* Parameter passed as input of the task */
-      1,           /* Priority of the task. */
-      NULL);       /* Task handle. */
+    xTaskCreate(
+        taskMotorControl,   /* Task function. */
+        "taskMotorControl", /* String with name of task. */
+        7644,        /* Stack size in bytes. */
+        NULL,        /* Parameter passed as input of the task */
+        1,           /* Priority of the task. */
+        NULL);       /* Task handle. */
 }
 
-void loop()
-{
-  delay(1000);
+void loop(){
+delay(1000);
 }
 
 void taskBlinkLed(void *parameter)
@@ -75,6 +84,31 @@ void taskBlinkLed(void *parameter)
     vTaskDelay(200 / portTICK_PERIOD_MS);
   } 
   vTaskDelete(NULL);
+}
+ 
+void taskAWS( void * parameter)
+{
+  myawsclass awsobject = myawsclass();
+  Serial.println("Hello from task: 2");
+  int i = 0;
+  awsobject.connectAWS();
+  //create an endless loop so the task executes forever
+  for( ;; )
+  {
+    
+    //awsobject.publishMessage(i);
+    delay(1000);
+    //vTaskDelay(1000 / portTICK_PERIOD_MS);
+    //awsobject.publishMessage(i);
+    
+    //vTaskDelay(500 / portTICK_PERIOD_MS);
+    //Serial.println("Hello from task: 2");
+    i++;
+    awsobject.stayConnected();
+  }
+  
+  Serial.println("Ending task 2"); //should not reach this point but in case...
+  vTaskDelete( NULL );
 }
 
 void taskSensorDataGet(void *parameter)

@@ -31,7 +31,7 @@ class mclass {
     void SPEED(int motor_speed);
     void motor_direction(Motors motor_ch, Direction dir); /* set direction of rotation of the motors */
     void set_speed(Motors motor_ch, Direction dir, int new_speed);  /* set the speed of the motors */
-    void motor_all_stop();
+    void motor_all_stop();  /* stop all motors */
 };
 
 extern mclass motorobject;
