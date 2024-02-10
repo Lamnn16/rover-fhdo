@@ -29,6 +29,8 @@
 #include "WiFi.h"
 #include "AWS.h"
 
+#include <thread>
+
 /* The MQTT topics that this device should publish/subscribe to */
 #define AWS_IOT_PUBLISH_TOPIC   "greengrass/group05" 
 #define AWS_IOT_SUBSCRIBE_TOPIC "greengrass/test"
@@ -36,17 +38,22 @@
 WiFiClientSecure net = WiFiClientSecure();
 MQTTClient client = MQTTClient(256);
 
+
+String receivedTargetPayload;
+String receivedRoverPayload;
+
 myawsclass::myawsclass() {
 
 }
 
-
 void messageHandler(String &topic, String &payload) {
-  Serial.println("incoming: " + topic + " - " + payload);
-
-//  StaticJsonDocument<200> doc;
-//  deserializeJson(doc, payload);
-//  const char* message = doc["message"];
+  if (topic == "greengrass/group05")
+  {
+    receivedRoverPayload = payload;
+  }
+  if (topic == "greengrass/test") {
+    receivedTargetPayload = payload;
+  }
 }
 
 void myawsclass::stayConnected() {
@@ -110,5 +117,7 @@ void myawsclass::publishMessage(int16_t sensorValue) {
 }
 
 myawsclass awsobject = myawsclass();  /* creating an object of class aws */
+
+
 
 

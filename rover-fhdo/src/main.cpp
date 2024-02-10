@@ -1,34 +1,33 @@
 #include <Arduino.h>
-#include "opt3101.h"
-// #include "sensorDriver.h"
 #include "collision.h"
 #include "motorDriver.h"
 #include <AWS.h>
+#include <ArduinoJson.h>
+#include <WString.h>
 
-#define LED_BOARD 2 //change here the pin of the board to V2
-
-void taskBlinkLed(void *parameter);
 void taskSensorDataGet(void *parameter);
 void taskMotorControl(void *parameter);
-void taskAWS( void * parameter);
-
-void moveRover(int leftSpeed, int rightSpeed);
-
-int roverX = 0;
-int roverY = 0;
-int targetX = 10;
-int targetY = 10;
+void taskAWS(void *parameter);
 
 Collision collisionSensor;
 mclass motorDriver;
 
 bool obstacleDetected = false;
 
+// Extract roverX and roverY
+int roverX, roverY;
+int targetX, targetY;
+extern String receivedTargetPayload;
+extern String receivedRoverPayload;
 
-void setup(){
-  pinMode(LED_BOARD, OUTPUT);
+int previousTargetX;
+int previousTargetY;
+
+void setup()
+{
+  // pinMode(LED_BOARD, OUTPUT);
   Serial.begin(9600);
-  
+
   motorDriver.SETUP();
 
   if (collisionSensor.init())
@@ -43,154 +42,145 @@ void setup(){
   collisionSensor.setThreshDistance(200); // Set threshold distance to 200 mm
 
   delay(1000);
-  
-  xTaskCreate(
-                    taskBlinkLed,          /* Task function. */
-                    "TaskOne",        /* String with name of task. */
-                    7644,              /* Stack size in bytes. */
-                    NULL,             /* Parameter passed as input of the task */
-                    1,                /* Priority of the task. */
-                    NULL);            /* Task handle. */
+
+  // xTaskCreate(
+  //                   taskBorder,          /* Task function. */
+  //                   "TaskOne",        /* String with name of task. */
+  //                   7644,              /* Stack size in bytes. */
+  //                   NULL,             /* Parameter passed as input of the task */
+  //                   1,                /* Priority of the task. */
+  //                   NULL);            /* Task handle. */
 
   xTaskCreate(
-                    taskAWS,          /* Task function. */
-                    "TaskTwo",        /* String with name of task. */
-                    7644,              /* Stack size in bytes. */
-                    NULL,             /* Parameter passed as input of the task */
-                    1,                /* Priority of the task. */
-                    NULL);            /* Task handle. */
+      taskAWS,   /* Task function. */
+      "TaskTwo", /* String with name of task. */
+      20000,     /* Stack size in bytes. */
+      NULL,      /* Parameter passed as input of the task */
+      1,         /* Priority of the task. */
+      NULL);     /* Task handle. */
+
+  // xTaskCreate(
+  //       taskSensorDataGet,   /* Task function. */
+  //       "TaskSensorDataGet", /* String with name of task. */
+  //       7644,      /* Stack size in bytes. */
+  //       NULL,      /* Parameter passed as input of the task */
+  //       1,         /* Priority of the task. */
+  //       NULL);     /* Task handle. */
 
   xTaskCreate(
-        taskSensorDataGet,   /* Task function. */
-        "TaskSensorDataGet", /* String with name of task. */
-        7644,      /* Stack size in bytes. */
-        NULL,      /* Parameter passed as input of the task */
-        1,         /* Priority of the task. */
-        NULL);     /* Task handle. */
-
-    xTaskCreate(
-        taskMotorControl,   /* Task function. */
-        "taskMotorControl", /* String with name of task. */
-        7644,        /* Stack size in bytes. */
-        NULL,        /* Parameter passed as input of the task */
-        1,           /* Priority of the task. */
-        NULL);       /* Task handle. */
+      taskMotorControl,   /* Task function. */
+      "taskMotorControl", /* String with name of task. */
+      20000,              /* Stack size in bytes. */
+      NULL,               /* Parameter passed as input of the task */
+      1,                  /* Priority of the task. */
+      NULL);              /* Task handle. */
 }
 
-void loop(){
-delay(1000);
-}
-
-void taskBlinkLed(void *parameter)
+void loop()
 {
-  for (;;)
-  {
-    digitalWrite(LED_BOARD, HIGH);
-    vTaskDelay(200 / portTICK_PERIOD_MS); 
-    digitalWrite(LED_BOARD, LOW);
-    vTaskDelay(200 / portTICK_PERIOD_MS);
-  } 
-  vTaskDelete(NULL);
 }
- 
-void taskAWS( void * parameter)
+
+void taskAWS(void *parameter)
 {
   myawsclass awsobject = myawsclass();
-  Serial.println("Hello from task: 2");
-  int i = 0;
   awsobject.connectAWS();
-  //create an endless loop so the task executes forever
-  for( ;; )
-  {
-    
-    //awsobject.publishMessage(i);
-    delay(1000);
-    //vTaskDelay(1000 / portTICK_PERIOD_MS);
-    //awsobject.publishMessage(i);
-    
-    //vTaskDelay(500 / portTICK_PERIOD_MS);
-    //Serial.println("Hello from task: 2");
-    i++;
-    awsobject.stayConnected();
-  }
-  
-  Serial.println("Ending task 2"); //should not reach this point but in case...
-  vTaskDelete( NULL );
-}
-
-void taskSensorDataGet(void *parameter)
-{
-  Collision::segments segments;
   for (;;)
   {
-    segments = collisionSensor.warning();
-    if (segments.l)
-    {
-      Serial.println("Left collision detected!");
-      motorDriver.motor_all_stop();
-    }
-    if (segments.c)
-    {
-      Serial.println("Center collision detected!");
-      motorDriver.motor_all_stop();
-    }
-    if (segments.r)
-    {
-      Serial.println("Right collision detected!");
-      motorDriver.motor_all_stop();
-    }
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    awsobject.stayConnected();
   }
-  Serial.println("Ending task 2"); 
+
+  Serial.println("Ending task 2"); // should not reach this point but in case...
   vTaskDelete(NULL);
 }
 
+void extractCoordinates(const String &payload, int &x, int &y)
+{
+  int a, b;
+  int startIndex = payload.indexOf('(') + 1;
+  int commaIndex = payload.indexOf(',', startIndex);
+  int endIndex = payload.indexOf(')', commaIndex);
+
+  String xStr = payload.substring(startIndex, commaIndex);
+  String yStr = payload.substring(commaIndex + 1, endIndex);
+
+  x = xStr.toInt();
+  y = yStr.toInt();
+}
+
+// Updated PID gains and motor speeds
+const float kP = 15;
+const float kI = 0.001;
+const float kD = 0.001;
+const int roverSpeed = 100;
+
+// Updated PID controller variables
+float integralError = 0.0;
+float previousError = 0.0;
+float previousErrorKd = 0.0;
+
+int i = 0;
 void taskMotorControl(void *parameter)
 {
   for (;;)
   {
-    // Calculate the differences between target and rover coordinates
-    int diffX = targetX - roverX;
-    int diffY = targetY - roverY;
-  
-    // Calculate the angle to the target
-    float angle = atan2(diffY, diffX) * 180.0 / PI;
-    if (angle < 0) {
-      angle += 360.0;
+    // Extract roverX and roverY from receivedRoverPayload
+    extractCoordinates(receivedRoverPayload, roverX, roverY);
+    extractCoordinates(receivedTargetPayload, targetX, targetY);
+
+    if (previousTargetX != targetX)
+    {
+      i++;
+      motorDriver.set_speed(MotorRight, Forward, roverSpeed+100);
+      motorDriver.set_speed(MotorLeft, Backward, roverSpeed+100);
+      
+      vTaskDelay(2100 / portTICK_PERIOD_MS);
+
     }
-    
-      // Move the rover towards the target
-    if (diffX != 0 || diffY != 0) {
-      // Adjust the rover's speed based on the angle
-      int roverSpeed = 100;
-      int rightSpeed = 100;
-  
-      // Adjust the rover's speed based on the angle
-      if (angle <= 45) {
-        motorDriver.set_speed(MotorA, Forward, 50);
-        motorDriver.set_speed(MotorB, Forward, 50);
+    else
+    {
+      // Calculate distance between current rover coordinates and target coordinates
+      float distance = sqrt(pow(targetX - roverX, 2) + pow(targetY - roverY, 2));
+      Serial.println(distance);
+      // Calculate angle between current rover coordinates and target coordinates
+      float angle = atan2(targetY - roverY, targetX - roverX) * 180 / PI;
+
+      // PID Control
+      float error = angle - previousError;
+      integralError += error;
+      float derivativeError = error - previousErrorKd;
+
+      // Calculate steering control output
+      float steeringOutput = kP * error + kI * integralError + kD * derivativeError;
+
+      // Determine steering direction
+      enum SteeringDirection
+      {
+        Left,
+        Straight,
+        Right
+      };
+      SteeringDirection steering;
+
+      // Adjust motor speeds and directions based on steering direction and PID output
+      if (steeringOutput > 0)
+      {
+        motorDriver.set_speed(MotorRight, Forward, roverSpeed + 120);
+        motorDriver.set_speed(MotorLeft, Forward, roverSpeed);
       }
-      if (angle > 45 && angle <= 135) {
-        // Turn left
-        motorDriver.set_speed(MotorA, Forward, roverSpeed+40);
-        motorDriver.set_speed(MotorB, Forward, roverSpeed);
-      } else if (angle > 135 && angle <= 225) {
-        // Turn around
-        motorDriver.set_speed(MotorA, Forward, roverSpeed);
-        motorDriver.set_speed(MotorB, Backward, roverSpeed);
-      } else if (angle > 225 && angle <= 315) {
-        // Turn right
-        motorDriver.set_speed(MotorA, Forward, roverSpeed);
-        motorDriver.set_speed(MotorB, Forward, roverSpeed+40);
+      else if (steeringOutput < 0)
+      {
+        motorDriver.set_speed(MotorRight, Forward, roverSpeed);
+        motorDriver.set_speed(MotorLeft, Forward, roverSpeed + 120);
       }
-  
-    } else {
-      // Stop the rover when it reaches the target
-       motorDriver.set_speed(MotorA, Forward, 0);
-       motorDriver.set_speed(MotorB, Forward, 0);
+
+      // Update previous error for next iteration
+      previousError = angle;
+      previousErrorKd = error;
+
+      vTaskDelay(500 / portTICK_PERIOD_MS);
     }
+    previousTargetX = targetX;
   }
-  Serial.println("Ending task 3");
+
   vTaskDelete(NULL);
 }
-

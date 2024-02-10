@@ -1,5 +1,16 @@
 {
   "C_Cpp_Runner.msvcBatchPath": "",
+  "files.associations": {
+    "string": "cpp",
+    "array": "cpp",
+    "deque": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "cmath": "cpp",
+    "iterator": "cpp"
+  },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",

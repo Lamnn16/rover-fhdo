@@ -9,10 +9,10 @@
 #include "Arduino.h"
 #include "motorDriver.h"
 
-static uint8_t inA1 = 16;           /* Pin for Motor 0 */
-static uint8_t inA2 = 17;           /* Pin for Motor 0 */
-static uint8_t inB1 = 19;           /* Pin for Motor 1 */
-static uint8_t inB2 = 33;           /* Pin for Motor 1 */
+static uint8_t inA1 = 16;           /* Pin for Motor Right */
+static uint8_t inA2 = 17;           /* Pin for Motor Right */
+static uint8_t inB1 = 19;           /* Pin for Motor Left */
+static uint8_t inB2 = 33;           /* Pin for Motor Left */
 static int freq = 20000;
 static uint8_t Channel1 = 0;
 static uint8_t Channel2 = 1;

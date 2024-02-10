@@ -13,8 +13,8 @@
 
 enum Motors
 {
-  MotorA = 0,   /* Crawler Motor 1 */
-  MotorB = 1    /* Crawler Motor 2 */
+  MotorRight = 0,   /* Crawler Motor 1 */
+  MotorLeft = 1    /* Crawler Motor 2 */
 };
 
 enum Direction
